@@ -122,12 +122,11 @@ class MacosDockClickHideToggle < Formula
   desc "Click a frontmost application's Dock icon to hide it"
   homepage "https://github.com/$repo"
   url "https://github.com/$repo/releases/download/v$target/$asset"
-  version "$target"
   sha256 "$sha"
   license "ISC"
 
-  depends_on :macos
   depends_on arch: :arm64
+  depends_on :macos
   on_macos do
     depends_on macos: :ventura
   end
