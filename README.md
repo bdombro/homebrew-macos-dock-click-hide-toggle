@@ -109,12 +109,9 @@ backs up the release formula, stages a `file://` development formula and install
 with Homebrew. An EXIT trap restores the exact original formula even if brew
 fails. An unresolved backup is never overwritten: inspect it and run
 `bun scripts/dev-formula.ts reset` before trying again. Staging is ignored by Git.
-Unknown existing tap paths are not recursively deleted or replaced.
-Before stopping/removing an installation, recipes require any existing tap to
-be either a symlink resolving to this checkout or a clean Git checkout rooted
-at the physical tap path with this project's authorized public origin.
-Unknown, dangling, foreign or modified tap paths are rejected. Source symlink
-creation also refuses any existing path, including a dangling symlink.
+Tap removal delegates to `brew untap` without custom origin or working-tree
+checks. Source symlink creation refuses any existing path, including a
+dangling symlink.
 
 `reinstall-local` requires this checkout's symlink tap and installed keg. It
 stops the service, rebuilds and replaces only the Homebrew executable in the
