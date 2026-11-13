@@ -9,157 +9,177 @@ activation, modified clicks and drags retain their normal behavior.
 
 ## Requirements and distribution limits
 
-- **Apple Silicon only; macOS 13 (Ventura) or later.** The binary is compiled
-  explicitly for arm64/macOS 13. Compilation and local `--help` are checked;
-  actual macOS 13 Dock/permission behavior has **not** been runtime-tested.
+- **Apple Silicon; macOS 13 (Ventura) or later.** Native Dock/permission behavior
+  has not been runtime-tested on macOS 13.
 - Releases use **Apple Development signing**, not Developer ID Application,
   and are **not notarized**. A valid signature does not guarantee Gatekeeper
-  acceptance. Download quarantine or managed security policy may block execution;
-  Homebrew is not a security-policy bypass. Only allow software you trust, using
-  normal macOS approval controls. Some managed Macs may not permit it.
+  acceptance. Quarantine or managed policy may block execution. Homebrew is not
+  a security-policy bypass; use normal macOS approval controls for software you trust.
 - Each Mac needs manual Accessibility approval. Signing never grants consent.
 
-## Homebrew installation
+## Production installation
 
-The formula lives in this repository, not a separate tap repository. The explicit
-URL is required because the repository name does not start with `homebrew-`.
+All installations use the same Homebrew formula and service. Installing does
+**not** start the service. This repository contains its own `Formula/`; its name
+does not start with `homebrew-`, so the explicit repository URL is necessary:
 
 ```sh
 brew tap bdombro/macos-dock-click-hide-toggle https://github.com/bdombro/macos-dock-click-hide-toggle.git
 brew install bdombro/macos-dock-click-hide-toggle/macos-dock-click-hide-toggle
+```
+
+From a source checkout, `just install-production` first stops/removes the
+existing Homebrew installation and tap (including a local symlink tap), then
+installs the public formula from that URL. No GitHub authentication is needed.
+
+### Optional service startup and Accessibility
+
+Keep the service stopped while investigating input/event-tap problems. Only
+when you choose to run it, use this **manual opt-in**, as your logged-in graphical
+user, never with `sudo`:
+
+```sh
 brew services start bdombro/macos-dock-click-hide-toggle/macos-dock-click-hide-toggle
 ```
 
-Installing alone does **not** start the service. Start it as your logged-in user,
-without `sudo`; the login service runs `macos-dock-click-hide-toggle start`.
-Homebrew's generated session types include Aqua but are not Aqua-only; this
-formula does not override Homebrew's service generator. Start it only in your
-logged-in graphical session, not via a root/system service.
-
-### Accessibility
+The service runs `macos-dock-click-hide-toggle start`. Homebrew's generated
+session types include Aqua but are not Aqua-only.
 
 Open **System Settings > Privacy & Security > Accessibility** (called **Device
 Control and Data Access** on some versions). Allow the installed executable,
-not merely your terminal. If needed, use **+**, then **Cmd+Shift+G**, and enter
-the path printed by:
+not merely your terminal. Use **+**, then **Cmd+Shift+G**, and enter:
 
 ```sh
 echo "$(brew --prefix)/opt/macos-dock-click-hide-toggle/bin/macos-dock-click-hide-toggle"
 ```
 
-The running service waits for approval without repeated prompts. Bring an app
-forward, click its Dock icon to hide it, and click again to show it. If access
-still fails, check logs and macOS policy; Accessibility is not a guarantee that
-every event-tap/security-policy problem is resolved.
+The service waits for approval without repeated prompts. Permission is not a
+guarantee that every event-tap/security-policy problem is resolved. Updates or
+path changes may require renewed approval even with the same signing identity.
+Logs are at `$(brew --prefix)/var/log/macos-dock-click-hide-toggle.log`.
 
-### Restart, update and remove
+### Update and remove
 
 ```sh
-brew services restart bdombro/macos-dock-click-hide-toggle/macos-dock-click-hide-toggle
-
+brew services stop bdombro/macos-dock-click-hide-toggle/macos-dock-click-hide-toggle
 brew update
 brew upgrade bdombro/macos-dock-click-hide-toggle/macos-dock-click-hide-toggle
-brew services restart bdombro/macos-dock-click-hide-toggle/macos-dock-click-hide-toggle
+# Remains stopped; start manually only when desired.
 
-# Stop before uninstalling:
-brew services stop bdombro/macos-dock-click-hide-toggle/macos-dock-click-hide-toggle
-brew uninstall bdombro/macos-dock-click-hide-toggle/macos-dock-click-hide-toggle
-brew untap bdombro/macos-dock-click-hide-toggle
+# Or remove the installation and tap, preserving logs:
+just uninstall
 ```
 
-The service writes stdout/stderr to
-`$(brew --prefix)/var/log/macos-dock-click-hide-toggle.log`; logs may remain after
-uninstall. Updates/path changes may require renewed Accessibility approval even
-with the same signing identity. Reapprove the current executable if necessary.
+Without a checkout, stop the service as above, then use `brew uninstall
+bdombro/macos-dock-click-hide-toggle/macos-dock-click-hide-toggle` and
+`brew untap bdombro/macos-dock-click-hide-toggle`.
 
-### Migrating from the old local service
+### Legacy private-copy migration
 
-From your source checkout, run `just uninstall` (or `bun scripts/install.ts --uninstall`)
-**before** starting the Homebrew service. This stops
-`local.macos-dock-click-hide-toggle`, removes its private executable and plist,
-and preserves `~/.local/share/macos-dock-click-hide-toggle/daemon.log`.
-Do not run both services: they would both intercept Dock clicks.
+The old installer is removed. `just uninstall` now removes **only Homebrew**.
+Before starting Homebrew's service, manually stop/disable any legacy
+`local.macos-dock-click-hide-toggle` LaunchAgent and remove its plist at
+`~/Library/LaunchAgents/local.macos-dock-click-hide-toggle.plist` and executable at
+`~/.local/share/macos-dock-click-hide-toggle/macos-dock-click-hide-toggle`.
+Preserve `~/.local/share/macos-dock-click-hide-toggle/daemon.log`.
+Do not run two daemons: both would intercept Dock clicks. There is deliberately
+no permanent migration tool or automatic service startup.
 
-## Local development
+## Local development: Homebrew, not a second installer
 
-Requires Bun, Xcode command-line tools and a valid code-signing identity; `just` is
-an optional task runner. There are no third-party runtime dependencies.
+Requires Bun, just, Homebrew, Xcode command-line tools and a valid code-signing
+identity. The Swift runtime has no third-party dependencies.
 
 ```sh
-just scripts-typecheck              # bun run tsc --noEmit; no generated output
-just build                          # or bun scripts/build.ts
+bun install
+just scripts-typecheck
+just build                          # build/sign only; never installs or starts
 build/bin/macos-dock-click-hide-toggle --help
 build/bin/macos-dock-click-hide-toggle --version
-just install                        # copies the prebuilt binary; starts at login
-just uninstall                      # stops/removes local service, keeps logs
+just install-local                  # also: just install
+just reinstall-local                # also: just reinstall
+just test-release                   # install/test checked-in public release formula
+just install-production             # switch back to the public remote tap
+just uninstall                      # stop/remove Homebrew keg and this tap
 ```
 
-Build output is `build/bin/macos-dock-click-hide-toggle`. Build never installs,
-starts or restarts anything. Install never builds or signs. Alternatively,
-`bun scripts/install.ts /path/to/prebuilt-executable` installs an existing build.
-The executable embeds `VERSION` at build time; `--version` prints it, and
-`--help` or `-h` prints usage. Release builds embed the new release version.
+`install-local` stops/removes the old keg and untaps before creating a source
+symlink in Homebrew's standard tap directory. It builds the native binary,
+backs up the release formula, stages a `file://` development formula and installs
+with Homebrew. An EXIT trap restores the exact original formula even if brew
+fails. An unresolved backup is never overwritten: inspect it and run
+`bun scripts/dev-formula.ts reset` before trying again. Staging is ignored by Git.
+Unknown existing tap paths are not recursively deleted or replaced.
+Before stopping/removing an installation, recipes require any existing tap to
+be either a symlink resolving to this checkout or a clean Git checkout rooted
+at the physical tap path with this project's authorized public origin.
+Unknown, dangling, foreign or modified tap paths are rejected. Source symlink
+creation also refuses any existing path, including a dangling symlink.
 
-The build automatically chooses an identity only when exactly one valid Apple
-Development, Mac Developer or Developer ID Application identity exists. Otherwise
-set `CODE_SIGN_IDENTITY` locally (never commit credentials). Ad-hoc signing is
-rejected. The stable signing identifier is `local.macos-dock-click-hide-toggle`;
-use the same identity across updates to help preserve approval, without guarantees.
-Build and signing are separate function calls in `scripts/build.ts`. For a local
-unsigned build, comment out the `sign(output)` call; normal builds and releases should
-remain signed.
+`reinstall-local` requires this checkout's symlink tap and installed keg. It
+stops the service, rebuilds and replaces only the Homebrew executable in the
+Cellar. There is no private executable copy or separate local service.
+Every install/reinstall leaves the service stopped.
 
-The local executable is copied to
-`~/.local/share/macos-dock-click-hide-toggle/macos-dock-click-hide-toggle`; its
-LaunchAgent is `~/Library/LaunchAgents/local.macos-dock-click-hide-toggle.plist`.
-Approve that copy for local service use. Local logs are at
-`~/.local/share/macos-dock-click-hide-toggle/daemon.log`.
+Build output is `build/bin/macos-dock-click-hide-toggle`. `VERSION` is canonical;
+release builds use `APP_VERSION` to embed the target version before updating
+metadata. Signing chooses automatically only when exactly one valid Apple
+Development, Mac Developer or Developer ID Application identity exists.
+Otherwise set `CODE_SIGN_IDENTITY` locally; never commit credentials.
+Ad-hoc signing is rejected. The stable signing identifier is
+`local.macos-dock-click-hide-toggle`; using the same identity helps preserve
+approval without guarantees. Signing diagnostics do not disclose the identity.
 
-For foreground troubleshooting, stop any installed service first, then run
-`build/bin/macos-dock-click-hide-toggle start` and stop with **Ctrl+C**.
-Foreground use may attribute permission to your terminal. No runtime source
-behavior is changed by the packaging.
+For intentional foreground troubleshooting, stop all installed services first,
+then run `build/bin/macos-dock-click-hide-toggle start`; stop with **Ctrl+C**.
+Foreground use may attribute permission to your terminal. Packaging changes do
+not change the native runtime.
 
 ## Releases (maintainers)
 
-`VERSION` is canonical; add user-facing notes beneath `## [Unreleased]` in
-[CHANGELOG.md](CHANGELOG.md). Release tooling uses Bun,
-Git, Ruby (formula syntax check), Apple build/signing tools and authenticated `gh`.
-Bun executes the TypeScript scripts directly; `bun install` installs the development
-types and TypeScript compiler used by `just scripts-typecheck`. The app runtime
-remains Swift with no third-party runtime dependencies.
+Add notes beneath `## [Unreleased]` in [CHANGELOG.md](CHANGELOG.md).
+The pipeline uses Bun, just, Git, Ruby, zip, Apple build/signing tools and
+authenticated `gh`:
 
 ```sh
-just release patch --dry-run        # no file/Git/network mutations
-just release minor --yes            # also major or an explicit X.Y.Z
+just release patch --dry-run         # no file/Git/network mutations
+just release patch --prepare --yes   # local preparation only; no commit/push/release
+just release minor                   # asks before commit/tag/push/publication
+# major and --yes are also supported
 ```
 
-A real release requires a clean Git tree (including untracked files), correct
-origin and unused version/tag. It builds/signs, promotes Unreleased notes,
-archives the binary and license, hashes it and updates the formula. It commits
-only VERSION/changelog/formula, tags, atomically pushes branch+tag, then creates
-the public GitHub release. Signing may still require local keychain approval;
-`--yes` removes the script's confirmation, not OS security prompts.
+Publishing accepts a dirty working tree and requires the correct public
+origin, a branch and an unused local/remote tag. It typechecks,
+builds/signs and checks the embedded version, creates
+`build/bin/macos-dock-click-hide-toggle.zip`, syntax-checks the shared public
+formula, updates VERSION/changelog/formula, runs `git add -A` and commits all
+non-ignored changes across the repository (including existing edits, new files
+and deletions, with a coauthor trailer), tags, atomically pushes branch/tag,
+then creates a public release. Review all changes before releasing.
+`--yes` does not bypass keychain/OS approval.
 
-For initial preparation without Git or network actions:
+`--prepare` performs the same local build/metadata work without publication;
+it always bumps. Review prepared files; it is not a publish-resume command.
+Failures are not force-retried or rolled back: inspect local files, tags and
+remote state before recovery. If publication fails after push, publish the
+exact existing archive with `gh release create --verify-tag`; do not overwrite
+published assets. Older assets are never deleted.
 
-```sh
-just release 0.1.0 --prepare --yes
-```
+### Adaptations from the argsbarg Homebrew example
 
-This permits the current version with existing dated notes and writes the actual
-signed archive to
-`build/release/macos-dock-click-hide-toggle-0.1.0-macos-arm64.tar.gz`,
-release notes beside it, and its real SHA-256/public URL to the formula. A future
-URL is not downloadable until the matching asset is published. Review source
-and ignored files before the initial commit, tag/push and publication.
-
-Failures are not force-retried or rolled back: inspect the reported phase,
-working tree, tags and GitHub release before recovery. If push succeeded but
-publication failed, create the release from the already pushed tag and exact
-prepared asset/notes with `gh release create --verify-tag`; do not bump/rebuild
-or overwrite published assets blindly. Keep older release assets available for
-older formulas.
+- Reuse its `formula-shared.ts` render/archive helpers, `dev-formula.ts`
+  backup/stage/reset flow, typed release functions and local/production recipes.
+- Keep native Swift arm64/macOS 13 build/signing and canonical VERSION instead
+  of Bun compilation and a source version literal; use `build/bin`, ISC and
+  the existing daemon service. Formula tests use `--help`/`--version`; there
+  are no completions or invented runtime tests.
+- Use public HTTPS assets without a private download strategy. New releases
+  use the example's zip layout; the checked-in v0.1.2 tar URL/hash remain valid
+  until the next real release. No purge option or old-asset deletion.
+- Replace permissive example fallbacks with explicit installed/tap queries,
+  stopped-service replacement and failure-safe formula restoration. Keep
+  `--prepare` for local verification; remove explicit version arguments in
+  favor of the example's simpler `major|minor|patch` interface.
 
 ## License
 

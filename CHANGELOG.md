@@ -5,12 +5,18 @@ and [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
-## [0.1.2] - 2026-11-13
+## [0.1.3] - 2026-11-13
 
 ### Changed
 
-- Converted the typed maintenance toolchain to Bun TypeScript, with script
-  type-checking available through `just scripts-typecheck`.
+- Replace private-copy installation with Homebrew-only local and production
+  workflows; installs and rebuilds leave the service stopped.
+- Share local/release formula rendering and simplify release tooling using the
+  argsbarg Homebrew example.
+
+## [0.1.2] - 2026-11-13
+
+### Changed
 
 ## [0.1.1] - 2026-11-13
 
