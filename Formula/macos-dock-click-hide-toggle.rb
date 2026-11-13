@@ -1,8 +1,8 @@
 class MacosDockClickHideToggle < Formula
   desc "Click a frontmost application's Dock icon to hide it"
   homepage "https://github.com/bdombro/macos-dock-click-hide-toggle"
-  url "https://github.com/bdombro/macos-dock-click-hide-toggle/releases/download/v0.1.1/macos-dock-click-hide-toggle-0.1.1-macos-arm64.tar.gz"
-  sha256 "83f212195ee98faf1395348a56807c82b96d745b068d400b61da7041f8211de0"
+  url "https://github.com/bdombro/macos-dock-click-hide-toggle/releases/download/v0.1.2/macos-dock-click-hide-toggle-0.1.2-macos-arm64.tar.gz"
+  sha256 "8a09ab8ff9b14dede80e3ac3096b736682687cdd90b613c98427ac899767a3d9"
   license "ISC"
 
   depends_on arch: :arm64
