@@ -7,7 +7,7 @@ func fail(_ message: String) -> Never {
     exit(1)
 }
 
-let usage = "Usage: macos-dock-click-hide-toggle start"
+let usage = "Usage: macos-dock-click-hide-toggle <start|--version|--help>"
 
 guard CommandLine.arguments.count == 2 else { fail(usage) }
 switch CommandLine.arguments[1] {
@@ -16,10 +16,18 @@ case "-h", "--help":
     \(usage)
 
       start      Run in the foreground until Ctrl+C.
+      --version  Print the current version.
+      --help, -h Show this help.
     Click the frontmost app's Dock icon to hide it. Other Dock clicks,
     modified clicks, and drags retain their normal behavior.
     Requires Accessibility permission on each Mac.
     """)
+    exit(0)
+case "--version":
+    guard let version = Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String else {
+        fail("Version metadata is missing. Build the executable with scripts/build.py.")
+    }
+    print(version)
     exit(0)
 case "start":
     break

@@ -1,20 +1,22 @@
-set shell := ["bash", "-eu", "-o", "pipefail", "-c"]
+set shell := ["zsh", "-eu", "-o", "pipefail", "-c"]
 set positional-arguments
 
+# List available tasks.
 _:
     @just --list
 
+# Build and sign the executable in build/bin.
 build:
-    ./scripts/build.sh
+    python3 ./scripts/build.py
 
+# Install the built executable as a local user service.
 install:
-    ./scripts/install.sh
+    python3 ./scripts/install.py
 
+# Remove the local user service, preserving its logs.
 uninstall:
-    ./scripts/uninstall.sh
+    python3 ./scripts/install.py --uninstall
 
-test:
-    ./scripts/test.sh
-
+# Prepare or publish a versioned Homebrew release.
 release *args:
-    ./scripts/release.sh "$@"
+    python3 ./scripts/release.py "$@"

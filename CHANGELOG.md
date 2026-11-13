@@ -5,6 +5,13 @@ and [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Added
+
+- `--version` prints the version embedded in the executable at build time.
+- Help lists the version and help flags, including `-h`.
+- Build, local install/uninstall and release scripts use Python 3.9+ with no
+  third-party Python dependencies.
+
 ## [0.1.0] - 2026-11-13
 
 ### Added
