@@ -1,0 +1,8 @@
+/build/
+/macos-dock-click-hide-toggle
+/.agents/
+.DS_Store
+._*
+*.log
+*~
+*.swp
