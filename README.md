@@ -2,97 +2,145 @@
 
 **Click to show. Click again to hide.**
 
-Click an already frontmost application's Dock icon to hide it. Other app
-activation, modified clicks and drags retain their normal behavior.
+Clear an app out of the way with the same Dock icon you used to open it.
+No need to reach for **Cmd+H** or minimize its windows one by one.
 
-![preview](macos-dock-click-hide-toggle.gif)
+- **Click the frontmost app's icon:** hide the app and its windows without quitting.
+- **Click another app's icon:** open or switch to it as usual, including bringing
+  a hidden app back.
+- **Keep your usual gestures:** modified clicks and drags retain their normal behavior.
 
-## Requirements and distribution limits
+A small native Swift utility runs in the background. Once set up, you can leave
+the terminal behind.
 
-- **Apple Silicon; macOS 13 (Ventura) or later.** Native Dock/permission behavior
-  has not been runtime-tested on macOS 13.
-- Releases use **Apple Development signing**, not Developer ID Application,
-  and are **not notarized**. A valid signature does not guarantee Gatekeeper
-  acceptance. Quarantine or managed policy may block execution. Homebrew is not
-  a security-policy bypass; use normal macOS approval controls for software you trust.
-- Each Mac needs manual Accessibility approval. Signing never grants consent.
+![Dock click-to-hide in action](macos-dock-click-hide-toggle.gif)
 
-## Production installation
+## Quick setup
 
-All installations use the same Homebrew formula and service. Installing does
-**not** start the service. This repository contains its own `Formula/`; its name
-does not start with `homebrew-`, so the explicit repository URL is necessary:
+You need an **Apple Silicon Mac**, **macOS 13 (Ventura) or later**, and
+[Homebrew](https://brew.sh). No source checkout, Bun, or build tools are needed
+to install the release. Native Dock/permission behavior has not been
+runtime-tested on macOS 13.
+
+> **Before installing:** releases are Apple Development-signed, but **not
+> notarized**. macOS or your organization's security policy may block them.
+> Install only if you trust the software; Homebrew does not bypass those controls.
+
+### 1. Install
+
+Run these commands in Terminal:
 
 ```sh
 brew tap bdombro/macos-dock-click-hide-toggle https://github.com/bdombro/macos-dock-click-hide-toggle.git
 brew install bdombro/macos-dock-click-hide-toggle/macos-dock-click-hide-toggle
 ```
 
-From a source checkout, `just install-production` first stops/removes the
-existing Homebrew installation and tap (including a local symlink tap), then
-installs the public formula from that URL. No GitHub authentication is needed.
+Installation alone does **not** start the utility. The explicit repository URL
+in the first command is required; no GitHub sign-in is needed.
 
-### Optional service startup and Accessibility
+### 2. Start the background service
 
-Keep the service stopped while investigating input/event-tap problems. Only
-when you choose to run it, use this **manual opt-in**, as your logged-in graphical
-user, never with `sudo`:
+When you are ready to enable click-to-hide, run the following as your signed-in
+macOS user, **never with `sudo`**. This starts the utility now and at login:
 
 ```sh
 brew services start bdombro/macos-dock-click-hide-toggle/macos-dock-click-hide-toggle
 ```
 
-The service runs `macos-dock-click-hide-toggle start`. Homebrew's generated
-session types include Aqua but are not Aqua-only.
+### 3. Allow Accessibility access
 
-Open **System Settings > Privacy & Security > Accessibility** (called **Device
-Control and Data Access** on some versions). Allow the installed executable,
-not merely your terminal. Use **+**, then **Cmd+Shift+G**, and enter:
+The utility needs Accessibility access to recognize Dock clicks and hide apps.
+Approval is manual on each Mac; installing or signing the executable cannot
+grant it.
+
+1. Open **System Settings > Privacy & Security > Accessibility** (called
+   **Device Control and Data Access** on some versions).
+2. Enable `macos-dock-click-hide-toggle` if it is listed. Otherwise, click **+** and add:
+
+   ```sh
+   /opt/homebrew/opt/macos-dock-click-hide-toggle/bin/macos-dock-click-hide-toggle
+   ```
+
+3. Add the executable and turn its permission on. Allow the **installed
+   executable**, not just Terminal.
+
+The service waits for approval without repeated prompts and continues once
+access is granted.
+
+**Try it:** bring an app to the front, then click its Dock icon. Its windows
+should hide. Click the icon again to bring it back.
+
+## Pause, update, or uninstall
+
+### Pause click-to-hide
+
+Restore normal Dock behavior and disable startup at login:
 
 ```sh
-echo "$(brew --prefix)/opt/macos-dock-click-hide-toggle/bin/macos-dock-click-hide-toggle"
+brew services stop bdombro/macos-dock-click-hide-toggle/macos-dock-click-hide-toggle
 ```
 
-The service waits for approval without repeated prompts. Permission is not a
-guarantee that every event-tap/security-policy problem is resolved. Updates or
-path changes may require renewed approval even with the same signing identity.
-Logs are at `$(brew --prefix)/var/log/macos-dock-click-hide-toggle.log`.
+Use the [start command](#2-start-the-background-service) whenever you want to enable it again.
 
-### Update and remove
+### Update
+
+Stop the service before upgrading:
 
 ```sh
 brew services stop bdombro/macos-dock-click-hide-toggle/macos-dock-click-hide-toggle
 brew update
 brew upgrade bdombro/macos-dock-click-hide-toggle/macos-dock-click-hide-toggle
-# Remains stopped; start manually only when desired.
-
-# Or remove the installation and tap, preserving logs:
-just uninstall
 ```
 
-Without a checkout, stop the service as above, then use `brew uninstall
-bdombro/macos-dock-click-hide-toggle/macos-dock-click-hide-toggle` and
-`brew untap bdombro/macos-dock-click-hide-toggle`.
+The service remains stopped. When ready, [start it again](#2-start-the-background-service)
+and check Accessibility access; updates or path changes may require renewed approval.
 
-### Legacy private-copy migration
+### Uninstall
 
-The old installer is removed. `just uninstall` now removes **only Homebrew**.
-Before starting Homebrew's service, manually stop/disable any legacy
-`local.macos-dock-click-hide-toggle` LaunchAgent and remove its plist at
-`~/Library/LaunchAgents/local.macos-dock-click-hide-toggle.plist` and executable at
-`~/.local/share/macos-dock-click-hide-toggle/macos-dock-click-hide-toggle`.
-Preserve `~/.local/share/macos-dock-click-hide-toggle/daemon.log`.
-Do not run two daemons: both would intercept Dock clicks. There is deliberately
-no permanent migration tool or automatic service startup.
+No source checkout is required:
 
-## Local development: Homebrew, not a second installer
+```sh
+brew services stop bdombro/macos-dock-click-hide-toggle/macos-dock-click-hide-toggle
+brew uninstall bdombro/macos-dock-click-hide-toggle/macos-dock-click-hide-toggle
+brew untap bdombro/macos-dock-click-hide-toggle
+```
+
+Logs are preserved.
+
+## Troubleshooting
+
+- **Clicking does nothing:** check `brew services list`, then verify
+  [Accessibility access](#3-allow-accessibility-access) for the installed executable.
+  Test with an ordinary click on the **frontmost** app's icon, not a modified
+  click or a drag.
+- **macOS blocks the executable:** a valid signature does not guarantee
+  Gatekeeper acceptance. Releases use Apple Development signing, not Developer
+  ID Application signing, and are not notarized. Use normal macOS approval
+  controls only for software you trust; managed policy may prevent execution.
+- **It stopped working after an update:** recheck the Accessibility entry.
+  The same signing identity helps preserve approval but does not guarantee it.
+- **Input behaves unexpectedly:** [stop the service](#pause-click-to-hide)
+  before investigating. Accessibility approval alone does not resolve every
+  event-tap or security-policy issue.
+
+To inspect recent startup and permission messages:
+
+```sh
+tail -n 50 "$(brew --prefix)/var/log/macos-dock-click-hide-toggle.log"
+```
+
+## Development and releases
+
+<details>
+<summary>Build from source, work on the utility, or publish a release</summary>
+
+### Local development: Homebrew, not a second installer
 
 Requires Bun, just, Homebrew, Xcode command-line tools and a valid code-signing
 identity. The Swift runtime has no third-party dependencies.
 
 ```sh
 bun install
-just scripts-typecheck
 just build                          # build/sign only; never installs or starts
 build/bin/macos-dock-click-hide-toggle --help
 build/bin/macos-dock-click-hide-toggle --version
@@ -102,6 +150,10 @@ just test-release                   # install/test checked-in public release for
 just install-production             # switch back to the public remote tap
 just uninstall                      # stop/remove Homebrew keg and this tap
 ```
+
+`just install-production` first stops/removes the existing Homebrew installation
+and tap (including a local symlink tap), then installs the public formula from
+the explicit repository URL. No GitHub authentication is needed.
 
 `install-local` stops/removes the old keg and untaps before creating a source
 symlink in Homebrew's standard tap directory. It builds the native binary,
@@ -132,7 +184,10 @@ then run `build/bin/macos-dock-click-hide-toggle start`; stop with **Ctrl+C**.
 Foreground use may attribute permission to your terminal. Packaging changes do
 not change the native runtime.
 
-## Releases (maintainers)
+The service runs `macos-dock-click-hide-toggle start`. Homebrew's generated
+session types include Aqua but are not Aqua-only.
+
+### Releases (maintainers)
 
 Add notes beneath `## [Unreleased]` in [CHANGELOG.md](CHANGELOG.md).
 The pipeline uses Bun, just, Git, Ruby, zip, Apple build/signing tools and
@@ -146,8 +201,8 @@ just release minor                   # asks before commit/tag/push/publication
 ```
 
 Publishing accepts a dirty working tree and requires the correct public
-origin, a branch and an unused local/remote tag. It typechecks,
-builds/signs and checks the embedded version, creates
+origin, a branch and an unused local/remote tag. It builds/signs and checks the
+embedded version, creates
 `build/bin/macos-dock-click-hide-toggle.zip`, syntax-checks the shared public
 formula, updates VERSION/changelog/formula, runs `git add -A` and commits all
 non-ignored changes across the repository (including existing edits, new files
@@ -162,7 +217,7 @@ remote state before recovery. If publication fails after push, publish the
 exact existing archive with `gh release create --verify-tag`; do not overwrite
 published assets. Older assets are never deleted.
 
-### Adaptations from the argsbarg Homebrew example
+#### Adaptations from the argsbarg Homebrew example
 
 - Reuse its `formula-shared.ts` render/archive helpers, `dev-formula.ts`
   backup/stage/reset flow, typed release functions and local/production recipes.
@@ -177,6 +232,8 @@ published assets. Older assets are never deleted.
   stopped-service replacement and failure-safe formula restoration. Keep
   `--prepare` for local verification; remove explicit version arguments in
   favor of the example's simpler `major|minor|patch` interface.
+
+</details>
 
 ## License
 
