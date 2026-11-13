@@ -1,8 +1,8 @@
 class MacosDockClickHideToggle < Formula
   desc "Click a frontmost application's Dock icon to hide it"
   homepage "https://github.com/bdombro/macos-dock-click-hide-toggle"
-  url "https://github.com/bdombro/macos-dock-click-hide-toggle/releases/download/v0.1.0/macos-dock-click-hide-toggle-0.1.0-macos-arm64.tar.gz"
-  sha256 "29153e830a2be426287c7f1566bc740f708ccb7c8f0b9f9b2d8aa0ed7d099f96"
+  url "https://github.com/bdombro/macos-dock-click-hide-toggle/releases/download/v0.1.1/macos-dock-click-hide-toggle-0.1.1-macos-arm64.tar.gz"
+  sha256 "83f212195ee98faf1395348a56807c82b96d745b068d400b61da7041f8211de0"
   license "ISC"
 
   depends_on arch: :arm64
@@ -26,5 +26,6 @@ class MacosDockClickHideToggle < Formula
 
   test do
     assert_match "Usage:", shell_output("#{bin}/macos-dock-click-hide-toggle --help")
+    assert_equal version.to_s, shell_output("#{bin}/macos-dock-click-hide-toggle --version").strip
   end
 end
