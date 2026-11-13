@@ -5,6 +5,11 @@ and [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Changed
+
+- Converted the typed maintenance toolchain to Bun TypeScript, with script
+  type-checking available through `just scripts-typecheck`.
+
 ## [0.1.1] - 2026-11-13
 
 ### Added

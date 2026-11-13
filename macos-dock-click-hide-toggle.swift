@@ -25,7 +25,7 @@ case "-h", "--help":
     exit(0)
 case "--version":
     guard let version = Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String else {
-        fail("Version metadata is missing. Build the executable with scripts/build.py.")
+        fail("Version metadata is missing. Build the executable with scripts/build.ts.")
     }
     print(version)
     exit(0)

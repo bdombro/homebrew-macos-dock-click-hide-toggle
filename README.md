@@ -74,7 +74,7 @@ with the same signing identity. Reapprove the current executable if necessary.
 
 ### Migrating from the old local service
 
-From your source checkout, run `just uninstall` (or `./scripts/install.py --uninstall`)
+From your source checkout, run `just uninstall` (or `bun scripts/install.ts --uninstall`)
 **before** starting the Homebrew service. This stops
 `local.macos-dock-click-hide-toggle`, removes its private executable and plist,
 and preserves `~/.local/share/macos-dock-click-hide-toggle/daemon.log`.
@@ -82,11 +82,12 @@ Do not run both services: they would both intercept Dock clicks.
 
 ## Local development
 
-Requires Python 3.9+, Xcode command-line tools and a valid code-signing identity; `just` is
+Requires Bun, Xcode command-line tools and a valid code-signing identity; `just` is
 an optional task runner. There are no third-party runtime dependencies.
 
 ```sh
-just build                          # or ./scripts/build.py
+just scripts-typecheck              # bun run tsc --noEmit; no generated output
+just build                          # or bun scripts/build.ts
 build/bin/macos-dock-click-hide-toggle --help
 build/bin/macos-dock-click-hide-toggle --version
 just install                        # copies the prebuilt binary; starts at login
@@ -95,7 +96,7 @@ just uninstall                      # stops/removes local service, keeps logs
 
 Build output is `build/bin/macos-dock-click-hide-toggle`. Build never installs,
 starts or restarts anything. Install never builds or signs. Alternatively,
-`./scripts/install.py /path/to/prebuilt-executable` installs an existing build.
+`bun scripts/install.ts /path/to/prebuilt-executable` installs an existing build.
 The executable embeds `VERSION` at build time; `--version` prints it, and
 `--help` or `-h` prints usage. Release builds embed the new release version.
 
@@ -104,7 +105,7 @@ Development, Mac Developer or Developer ID Application identity exists. Otherwis
 set `CODE_SIGN_IDENTITY` locally (never commit credentials). Ad-hoc signing is
 rejected. The stable signing identifier is `local.macos-dock-click-hide-toggle`;
 use the same identity across updates to help preserve approval, without guarantees.
-Build and signing are separate function calls in `scripts/build.py`. For a local
+Build and signing are separate function calls in `scripts/build.ts`. For a local
 unsigned build, comment out the `sign(output)` call; normal builds and releases should
 remain signed.
 
@@ -122,9 +123,11 @@ behavior is changed by the packaging.
 ## Releases (maintainers)
 
 `VERSION` is canonical; add user-facing notes beneath `## [Unreleased]` in
-[CHANGELOG.md](CHANGELOG.md). Release tooling uses Python 3.9+ (standard library only),
-Git, Ruby (formula syntax check), Apple build/signing tools and authenticated `gh`; no Bun or new
-package dependencies.
+[CHANGELOG.md](CHANGELOG.md). Release tooling uses Bun,
+Git, Ruby (formula syntax check), Apple build/signing tools and authenticated `gh`.
+Bun executes the TypeScript scripts directly; `bun install` installs the development
+types and TypeScript compiler used by `just scripts-typecheck`. The app runtime
+remains Swift with no third-party runtime dependencies.
 
 ```sh
 just release patch --dry-run        # no file/Git/network mutations
