@@ -28,15 +28,13 @@ runtime-tested on macOS 13.
 
 ### 1. Install
 
-Run these commands in Terminal:
+Run this command in Terminal:
 
 ```sh
-brew tap bdombro/macos-dock-click-hide-toggle https://github.com/bdombro/macos-dock-click-hide-toggle.git
 brew install bdombro/macos-dock-click-hide-toggle/macos-dock-click-hide-toggle
 ```
 
-Installation alone does **not** start the utility. The explicit repository URL
-in the first command is required; no GitHub sign-in is needed.
+Installation alone does **not** start the utility. No GitHub sign-in is needed.
 
 ### 2. Start the background service
 

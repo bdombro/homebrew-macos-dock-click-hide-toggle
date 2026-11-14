@@ -6,7 +6,7 @@ import { pathToFileURL } from "node:url";
 import { $ } from "bun";
 import { NAME, ROOT, VERSION_PATTERN } from "./common.ts";
 
-export const releaseRepoSlug = `bdombro/${NAME}`;
+export const releaseRepoSlug = `bdombro/homebrew-${NAME}`;
 export const className = NAME.split("-").map(s => s[0]!.toUpperCase() + s.slice(1)).join("");
 export const formulaInstallRuby = `def install
     bin.install "${NAME}"

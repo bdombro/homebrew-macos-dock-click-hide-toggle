@@ -5,6 +5,13 @@ and [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [0.1.4] - 2026-11-14
+
+### Changed
+
+- Rename the repository to `bdombro/homebrew-macos-dock-click-hide-toggle` so
+  Homebrew installs work without an explicit repository URL.
+
 ## [0.1.3] - 2026-11-13
 
 ### Changed

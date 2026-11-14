@@ -32,9 +32,9 @@ install-local: uninstall build
     trap 'bun scripts/dev-formula.ts reset' EXIT
     HOMEBREW_NO_AUTO_UPDATE=1 HOMEBREW_NO_INSTALL_CLEANUP=1 brew install --formula '{{formula}}'
 
-# Switch from the local tap to the explicit public repository; leave stopped.
+# Switch from the local tap to the public repository; leave stopped.
 install-production: uninstall
-    brew tap '{{tap}}' 'https://github.com/bdombro/macos-dock-click-hide-toggle.git'
+    brew tap '{{tap}}'
     HOMEBREW_NO_INSTALL_CLEANUP=1 brew install --formula '{{formula}}'
 
 # Alias for quick local rebuild/replacement.
